@@ -7,7 +7,7 @@ load_dotenv()
 username = os.environ.get("IG_USERNAME")
 email = os.environ.get("IG_EMAIL")
 password = os.environ.get("IG_PASSWORD")
-login_only = ast.literal_eval(os.environ.get("LOGIN_ONLY"))
+
 
 
 def authenticate(client, session_file):
@@ -28,14 +28,14 @@ def authenticate(client, session_file):
 def load_seen_messages(file):
     if os.path.exists(file):
         with open(file, "r") as f:
-            return set(json.load(f))
+            return json.load(f)
     else:
-        return set()
+        return {}
 
 
 def save_seen_messages(file, messages):
     with open(file, "w") as f:
-        json.dump(list(messages), f)
+        json.dump(messages, f)
 
 
 def get_now():
@@ -44,7 +44,7 @@ def get_now():
 
 def sleep_countdown():
     # check for new messages every random seconds
-    sleep_time = random.randint(30 * 60, 60 * 60)
+    sleep_time = random.randint(30, 120)
     print(f"[{get_now()}] Timeout duration: {sleep_time} seconds.")
 
     for remaining_time in range(sleep_time, 0, -1):
@@ -84,11 +84,8 @@ def main():
     user_id = cl.user_id_from_username(username)
     print(f"[{get_now()}] Logged in as user ID {user_id}")
 
-    if login_only:
-        print(f"[{get_now()}] LOGIN_ONLY is set to true, the script ends here")
-        return
 
-    seen_message_ids = load_seen_messages(seen_messages_file)
+    seen_messages = load_seen_messages(seen_messages_file)
     print(f"[{get_now()}] Loaded seen messages.")
 
     while True:
@@ -104,15 +101,21 @@ def main():
                 cl.delay_range = [1, 3]
 
                 for message in messages:
-                    if message.id not in seen_message_ids:
+                    message_id = message.id
+                    message_text = message.text if hasattr(message, 'text') else ""
+                    message_caption = ""
+                    if message.id not in seen_messages:
                         match message.item_type:
                             case "clip":
                                 print(
-                                    f"[{get_now()}] Downloading reel {message.clip.pk}"
+                                    f"[{get_now()}] Downloading reel {message.clip.pk} from user {message.user_id} with caption {message.clip.caption_text}"
+
                                 )
+                                message_caption = message.clip.caption_text
                                 try:
                                     download_clip(cl, message.clip.pk)
                                 except Exception as e:
+                                    print ('Error Downloading...')
                                     print(e)
                             case "xma_story_share":
                                 print(
@@ -122,8 +125,8 @@ def main():
                                 print(
                                     f"[{get_now()}] New message in thread {thread_id}: {message.text}"
                                 )
-                        seen_message_ids.add(message.id)
-                        save_seen_messages(seen_messages_file, seen_message_ids)
+                        seen_messages[message_id] = {"message_text": message_text, "message_caption": message_caption}
+                        save_seen_messages(seen_messages_file, seen_messages)
 
         except Exception as e:
             print(f"[{get_now()}] An exception occurred: {e}")
