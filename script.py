@@ -44,7 +44,7 @@ def get_now():
 
 def sleep_countdown():
     # check for new messages every random seconds
-    sleep_time = random.randint(30, 120)
+    sleep_time = random.randint(30*60, 60*60)
     print(f"[{get_now()}] Timeout duration: {sleep_time} seconds.")
 
     for remaining_time in range(sleep_time, 0, -1):
