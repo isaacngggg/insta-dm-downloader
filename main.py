@@ -8,6 +8,7 @@ from transcription import get_transcription
 import os
 from supabase import create_client, Client as SupabaseClient
 from skyscraper import get_preferred_date
+import shutil
 
 load_dotenv()
 
@@ -195,6 +196,9 @@ def main():
                                     )
                             transcription = get_transcription(message_id)
                             # video_summary = get_video_summary(message_id)
+                            # Delete the video and audio files from the folder
+                            shutil.rmtree('download')
+                            shutil.rmtree('audio')
                             response = (
                                 supabase.table("clips")
                                 .insert({
@@ -212,7 +216,6 @@ def main():
                                         })
                                 .execute()
                             )
-                            
                             classify_intent(message_id)
                             # save_seen_messages(seen_messages_file, seen_messages)
                             send_message(cl, message_id, [thread_id])
