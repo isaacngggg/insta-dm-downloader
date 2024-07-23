@@ -79,7 +79,7 @@ def classify_intent(message_id):
                 +transcription+caption+video_frame_summary+
                 " the classifier value is " + classifier_value +
                 " Can you return a json object with the following properties:  'restaurant_name', 'location', 'cusinie', 'city', 'country', 'dish_name', 'things_to_know', 'activity_name', 'recipe', 'ingredients',? If it is not applicable, please return the value as an empty string (i.e. '') and not 'None' because that will not work. For recipe, please return in step by step guide" +
-                " Please not add any description or title 'json' to the json object. \n\n Just return the json object alone as a string in a single line, an example response is shown here: {'restaurant_name':'Wing Wah', 'location':'', 'cusinie':'chinese', 'city':'kowloon', 'country':'hong kong', 'dish_name':'', 'things_to_know':'', 'activity_name':'', 'recipe':'1. Boil water 2. Add noodles 3. Add seasoning 4. Serve', 'ingredients':'noodles, seasoning'}"
+                " Please not add any description or title 'json' to the json object. \n\n Just return the json object alone as a string in a single line & use double quotation whenever possible to avoid single quotations affecting the json formating, an example response is shown here: {'restaurant_name':'Wing Wah', 'location':'', 'cusinie':'chinese', 'city':'kowloon', 'country':'hong kong', 'dish_name':'', 'things_to_know':'', 'activity_name':'', 'recipe':'1. Boil water 2. Add noodles 3. Add seasoning 4. Serve', 'ingredients':'noodles, seasoning'}"
             )
             messages = [{"role": "user", "content": prompt}]
             completion = client.chat.completions.create(

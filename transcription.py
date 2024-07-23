@@ -1,6 +1,5 @@
 from moviepy.editor import VideoFileClip
 import os
-import json
 
 
 def get_transcription(message_id):
