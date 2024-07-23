@@ -2,7 +2,7 @@ import os, json, time, random, sys, datetime, ast
 from dotenv import load_dotenv
 from instagrapi import Client
 from instagrapi.exceptions import LoginRequired
-from videoGPT import get_video_summary
+# from videoGPT import get_video_summary
 from intent_classifier import classify_intent
 from transcription import get_transcription
 import os
