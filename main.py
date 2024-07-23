@@ -122,118 +122,128 @@ def send_message(cl, message_id, thread_ids):
 
 
 def main():
-    cl = Client()
-    cl.delay_range = [1, 3]
+    try:
+        cl = Client()
+        cl.delay_range = [1, 3]
 
-    session_file = "session.json"
-    seen_messages_file = "seen_messages.json"
-    authenticate(cl, session_file)
+        session_file = "session.json"
+        seen_messages_file = "seen_messages.json"
+        authenticate(cl, session_file)
 
-    user_id = cl.user_id_from_username(username)
-    print(f"[{get_now()}] Logged in as user ID {user_id}")
+        user_id = cl.user_id_from_username(username)
+        print(f"[{get_now()}] Logged in as user ID {user_id}")
 
 
-    while True:
-        try:
-            response = supabase.table("clips").select("message_id").execute()
+        while True:
+            try:
+                response = supabase.table("clips").select("message_id").execute()
 
-            message_ids = []
+                message_ids = []
 
-            for row in response.data:
-                message_ids.append(row['message_id'])
+                for row in response.data:
+                    message_ids.append(row['message_id'])
 
-            threads = cl.direct_threads()
-            print(f"[{get_now()}] Retrieved direct threads.")
-            cl.delay_range = [1, 3]
-
-            for thread in threads:
-                thread_id = thread.id
-                messages = cl.direct_messages(thread_id)
-                print(f"[{get_now()}] Retrieved messages.")
+                threads = cl.direct_threads()
+                print(f"[{get_now()}] Retrieved direct threads.")
                 cl.delay_range = [1, 3]
-                sender_user_id = ""
-                if thread.is_group == False:
-                    sender_user_id = thread.inviter.username
-                    
-                for message in messages:
-                    message_id = message.id
-                    message_text = message.text if hasattr(message, 'text') else ""
-                    message_timestamp = str(message.timestamp)
-                    message_caption = ""
-                    clip_url = ""
-                    play_count = 0
-                    like_count = 0
-                    clip_creator_username = ""
-                    if message.id not in message_ids:
-                        if message.item_type == None or message.is_sent_by_viewer == True:
-                            print(
-                            f"[{get_now()}] Ignoring message in {thread_id}: {message.text}"
-                        )
-                        else:
-                            match message.item_type:
-                                case "clip":
-                                    print(
-                                        f"[{get_now()}] Downloading reel {message.clip.pk} from user {message.user_id} with caption {message.clip.caption_text}"
 
-                                    )
-                                    message_caption = message.clip.caption_text
-                                    clip_url = str(message.clip.thumbnail_url)
-                                    play_count = message.clip.play_count
-                                    like_count = message.clip.like_count
-                                    clip_creator_username = message.clip.user.username
-                                    try:
-                                        download_clip(cl, message.clip.pk,message_id)
-                                    except Exception as e:
-                                        print ('Error Downloading...')
-                                        print(e)
-                                case "xma_story_share":
-                                    print(
-                                        f"[{get_now()}] New story video in thread {thread_id}: {message.id}"
-                                    )
-                                case _:
-                                    print(
-                                        f"[{get_now()}] New message in thread {thread_id}: {message.text}"
-                                    )
-                            transcription = get_transcription(message_id)
-                            # video_summary = get_video_summary(message_id)
-                            # Delete the video and audio files from the folder
-                            shutil.rmtree('download')
-                            shutil.rmtree('audio')
-                            response = (
-                                supabase.table("clips")
-                                .insert({
-                                        "message_username": sender_user_id, 
-                                        "message_text": message_text, 
-                                        "message_timestamp": message_timestamp,
-                                        "clip_caption": message_caption, 
-                                        "message_id": message_id, 
-                                        "clip_transcription": transcription, 
-                                        "clip_creator_username": clip_creator_username,
-                                        "clip_url": clip_url,
-                                        "play_count": play_count,
-                                            "like_count": like_count,
-                                            "thread_id": thread_id,
-                                        })
-                                .execute()
+                for thread in threads:
+                    thread_id = thread.id
+                    messages = cl.direct_messages(thread_id)
+                    print(f"[{get_now()}] Retrieved messages.")
+                    cl.delay_range = [1, 3]
+                    sender_user_id = ""
+                    if thread.is_group == False:
+                        sender_user_id = thread.inviter.username
+                        
+                    for message in messages:
+                        message_id = message.id
+                        message_text = message.text if hasattr(message, 'text') else ""
+                        message_timestamp = str(message.timestamp)
+                        message_caption = ""
+                        clip_url = ""
+                        play_count = 0
+                        like_count = 0
+                        clip_creator_username = ""
+                        if message.id not in message_ids:
+                            if message.item_type == None or message.is_sent_by_viewer == True:
+                                print(
+                                f"[{get_now()}] Ignoring message in {thread_id}: {message.text}"
                             )
-                            classify_intent(message_id)
-                            # save_seen_messages(seen_messages_file, seen_messages)
-                            send_message(cl, message_id, [thread_id])
+                            else:
+                                match message.item_type:
+                                    case "clip":
+                                        print(
+                                            f"[{get_now()}] Downloading reel {message.clip.pk} from user {message.user_id} with caption {message.clip.caption_text}"
+
+                                        )
+                                        message_caption = message.clip.caption_text
+                                        clip_url = str(message.clip.thumbnail_url)
+                                        play_count = message.clip.play_count
+                                        like_count = message.clip.like_count
+                                        clip_creator_username = message.clip.user.username
+                                        try:
+                                            download_clip(cl, message.clip.pk,message_id)
+                                        except Exception as e:
+                                            print ('Error Downloading...')
+                                            print(e)
+                                    case "xma_story_share":
+                                        print(
+                                            f"[{get_now()}] New story video in thread {thread_id}: {message.id}"
+                                        )
+                                    case _:
+                                        print(
+                                            f"[{get_now()}] New message in thread {thread_id}: {message.text}"
+                                        )
+                                transcription = get_transcription(message_id)
+                                # video_summary = get_video_summary(message_id)
+                                # Delete the video and audio files from the folder
+                                shutil.rmtree('download')
+                                shutil.rmtree('audio')
+                                response = (
+                                    supabase.table("clips")
+                                    .insert({
+                                            "message_username": sender_user_id, 
+                                            "message_text": message_text, 
+                                            "message_timestamp": message_timestamp,
+                                            "clip_caption": message_caption, 
+                                            "message_id": message_id, 
+                                            "clip_transcription": transcription, 
+                                            "clip_creator_username": clip_creator_username,
+                                            "clip_url": clip_url,
+                                            "play_count": play_count,
+                                                "like_count": like_count,
+                                                "thread_id": thread_id,
+                                            })
+                                    .execute()
+                                )
+                                classify_intent(message_id)
+                                # save_seen_messages(seen_messages_file, seen_messages)
+                                send_message(cl, message_id, [thread_id])
 
 
 
 
-        except Exception as e:
-            print(f"[{get_now()}] An exception occurred: {e}")
-            print(f"[{get_now()}] Deleting the session file and restarting the script.")
-            if os.path.exists(session_file):
-                os.remove(session_file)
+            except Exception as e:
+                print(f"[{get_now()}] An exception occurred: {e}")
+                print(f"[{get_now()}] Deleting the session file and restarting the script.")
+                if os.path.exists(session_file):
+                    os.remove(session_file)
+                sleep_countdown()
+                print(f"[{get_now()}] Restarting the script now.")
+                os.execv(sys.executable, ["python"] + sys.argv)
+                
+
             sleep_countdown()
-            print(f"[{get_now()}] Restarting the script now.")
-            os.execv(sys.executable, ["python"] + sys.argv)
-            
-
+    
+    except Exception as e:
+        print(f"[{get_now()}] An exception occurred: {e}")
+        print(f"[{get_now()}] Deleting the session file and restarting the script.")
+        if os.path.exists(session_file):
+            os.remove(session_file)
         sleep_countdown()
+        print(f"[{get_now()}] Restarting the script now.")
+        os.execv(sys.executable, ["python"] + sys.argv)
 
 if __name__ == "__main__":
     main()
