@@ -48,7 +48,7 @@ def classify_intent(message_id):
         # using the transcription, caption and message text, determine the intent of the message using openai's intent classifier
         # check whether the video is video about travel, food or entertainment
 
-        categories = ["travel", "restaurant", "activities","recipes", "film & shows", "thoughts","other"]
+        categories = ["travel", "restaurant", "activities","recipes", "film & shows", "ideas & thoughts","other"]
 
         options_str = " ".join(categories)
         
@@ -411,5 +411,5 @@ def classify_intent(message_id):
 # get_transcription('31737217669174158506072675312467968')
 
 if __name__ == "__main__":
-    classify_intent("31764307167076038681104829357490176")
+    classify_intent("31766680561708536896006277302321152")
 
