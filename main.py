@@ -20,6 +20,9 @@ password = os.environ.get("IG_PASSWORD")
 url: str = os.environ.get("SUPABASE_URL")
 key: str = os.environ.get("SUPABASE_KEY")
 
+# proxy = os.environ.get("PROXY")
+
+
 if not url or not key:
     raise ValueError("Missing SUPABASE_URL or SUPABASE_KEY")
 else:
@@ -120,11 +123,14 @@ def send_message(cl, message_id, thread_ids):
 def main():
     try:
         cl = Client()
+        # if proxy:
+        #     cl.set_proxy(proxy)
         cl.delay_range = [1, 3]
 
         session_file = "session.json"
         seen_messages_file = "seen_messages.json"
         authenticate(cl, session_file)
+
 
         user_id = cl.user_id_from_username(username)
         print(f"[{get_now()}] Logged in as user ID {user_id}")
