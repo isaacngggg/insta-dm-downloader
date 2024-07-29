@@ -163,6 +163,7 @@ def main():
                         play_count = 0
                         like_count = 0
                         clip_creator_username = ""
+                        clip_creator_profile_url = ""
                         if message.id not in message_ids:
                             if message.item_type == None or message.is_sent_by_viewer == True:
                                 print(
@@ -181,6 +182,7 @@ def main():
                                         play_count = message.clip.play_count
                                         like_count = message.clip.like_count
                                         clip_creator_username = message.clip.user.username
+                                        clip_creator_profile_url = str(message.clip.user.profile_pic_url)
                                         try:
                                             download_clip(cl, message.clip.pk,message_id)
                                         except Exception as e:
@@ -197,8 +199,10 @@ def main():
                                 transcription = get_transcription(message_id)
                                 # video_summary = get_video_summary(message_id)
                                 # Delete the video and audio files from the folder
-                                shutil.rmtree('download')
-                                shutil.rmtree('audio')
+                                if os.path.exists('download'):
+                                    shutil.rmtree('download')
+                                if os.path.exists('audio'):
+                                    shutil.rmtree('audio')
                                 response = (
                                     supabase.table("clips")
                                     .insert({
@@ -215,6 +219,7 @@ def main():
                                                 "clip_code": clip_code,
                                                 "reel_url": f"https://www.instagram.com/p/{clip_code}/",
                                                 "thumbnail_url": f"https://www.instagram.com/p/{clip_code}/media/?size=l",
+                                                "clip_creator_profile_url":clip_creator_profile_url,
                                             })
                                     .execute()
                                 )
