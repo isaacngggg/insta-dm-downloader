@@ -132,9 +132,15 @@ def main():
     try:
         cl = Client()
 
-        # if proxy:
-        #     cl.set_proxy(proxy)
-        cl.delay_range = [1, 3]
+        # Test without proxy
+        # before_ip = cl._send_public_request("https://api.ipify.org/")
+        # print(f"Before: {before_ip}")
+
+        # # Set proxy and test again
+        # cl.set_proxy('https://brd-customer-hl_9227f0cb-zone-residential_proxy1:co7zcpi4m8dg@brd.superproxy.io:22225')
+        # after_ip = cl._send_public_request("https://api.ipify.org/")
+        # print(f"After: {after_ip}")
+        # cl.delay_range = [1, 3]
 
         session_file = "session.json"
         seen_messages_file = "seen_messages.json"
@@ -180,7 +186,7 @@ def main():
                         clip_creator_username = ""
                         clip_creator_profile_url = ""
                         if message.id not in message_ids:
-                            if message.item_type == None or message.is_sent_by_viewer == True:
+                            if message.item_type != "clip":
                                 print(
                                 f"[{get_now()}] Ignoring message in {thread_id}: {message.text}"
                             )
@@ -247,9 +253,7 @@ def main():
 
             except Exception as e:
                 print(f"[{get_now()}] An exception occurred: {e}")
-                print(f"[{get_now()}] Deleting the session file and restarting the script.")
-                if os.path.exists(session_file):
-                    os.remove(session_file)
+                print(f"[{get_now()}] Handling the exception and attempting to restart the script.")
                 sleep_countdown()
                 print(f"[{get_now()}] Restarting the script now.")
                 os.execv(sys.executable, ["python"] + sys.argv)
@@ -259,9 +263,19 @@ def main():
     
     except Exception as e:
         print(f"[{get_now()}] An exception occurred: {e}")
-        print(f"[{get_now()}] Deleting the session file and restarting the script.")
+        print(f"[{get_now()}] Attempting to re-login and restart the script.")
         if os.path.exists(session_file):
-            os.remove(session_file)
+            try:
+                cl.load_settings(session_file)
+                cl.login(username, password)
+                cl.get_timeline_feed()  # check if the session is valid
+            except LoginRequired:
+                print(f"[{get_now()}] Session is invalid, re-login required.")
+                cl.login(username, password)
+                cl.dump_settings(session_file)
+        else:
+            cl.login(username, password)
+            cl.dump_settings(session_file)
         sleep_countdown()
         print(f"[{get_now()}] Restarting the script now.")
         os.execv(sys.executable, ["python"] + sys.argv)
