@@ -22,6 +22,14 @@ key: str = os.environ.get("SUPABASE_KEY")
 
 # proxy = os.environ.get("PROXY")
 
+download_dir = 'download'
+if not os.path.exists(download_dir):
+    os.makedirs(download_dir)
+
+audio_dir = 'audio'
+if not os.path.exists(audio_dir):
+    os.makedirs(audio_dir)
+
 
 if not url or not key:
     raise ValueError("Missing SUPABASE_URL or SUPABASE_KEY")
@@ -123,6 +131,7 @@ def send_message(cl, message_id, thread_ids):
 def main():
     try:
         cl = Client()
+
         # if proxy:
         #     cl.set_proxy(proxy)
         cl.delay_range = [1, 3]
